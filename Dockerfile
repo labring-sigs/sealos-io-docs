@@ -37,34 +37,31 @@ COPY . .
 # Replace relative image paths with CDN URLs
 RUN chmod +x ./scripts/replace-image-paths.sh && ./scripts/replace-image-paths.sh
 RUN npm install && npm run build
+# Remove development dependencies to reduce final image size
+RUN npm prune --production
 
 FROM base AS runner
-RUN apk add --no-cache curl cairo-dev \
-    pango-dev \
+# Runtime libraries for canvas and image processing support
+RUN apk add --no-cache curl \
+    cairo \
+    pango \
     libjpeg-turbo \
-    giflib-dev \
-    librsvg-dev \
-    build-base \
-    python3 \
-    pkgconf
+    giflib \
+    librsvg \
+    fontconfig \
+    freetype \
+    harfbuzz \
+    fribidi
 ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 WORKDIR /app
-ENV npm_config_python=/usr/bin/python3
 
-COPY ./package*.json ./
-COPY ./next* ./
-COPY ./postcss.config.js ./
-COPY ./tsconfig.json ./
-COPY ./source.config.ts ./
-
-# Install only production dependencies
-RUN npm ci --only=production && npm cache clean --force
-
-# Copy built application
+# Copy built application and node_modules from builder
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 
 USER nextjs
 
