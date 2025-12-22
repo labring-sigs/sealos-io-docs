@@ -1,8 +1,8 @@
 import type { I18nConfig } from 'fumadocs-core/i18n';
 
-export type languagesType = 'zh-cn';
+export type languagesType = 'en' | 'zh-cn';
 
-export const LANGUAGES: Array<languagesType> = ['zh-cn'];
+export const LANGUAGES: Array<languagesType> = ['en', 'zh-cn'];
 
 export const i18n: I18nConfig = {
   defaultLanguage: 'zh-cn',
@@ -11,6 +11,7 @@ export const i18n: I18nConfig = {
 };
 
 export const locales: Array<{ name: string; locale: languagesType }> = [
+  { name: 'English', locale: 'en' },
   { name: '简体中文', locale: 'zh-cn' },
 ];
 

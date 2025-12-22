@@ -6,7 +6,7 @@ export const TYPEWRITER_TEXTS: Record<languagesType, string[]> = {
     'I want to create a full-stack application using Next.js and database.',
     'I want to deploy n8n from app store with queue mode.',
     'I want to build a Python Django web application.',
-    'I want to deploy a databse for caching.',
+    'I want to deploy a database for caching.',
   ],
   'zh-cn': [
     '给我一个带有 Claude Code 的云开发环境。',

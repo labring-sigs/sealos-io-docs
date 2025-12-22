@@ -1,25 +1,24 @@
-FROM node:20-alpine AS base
+FROM node:20-slim AS base
 
 FROM base AS builder
-RUN apk add --no-cache \
-    libc6-compat \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
-    build-base \
+    build-essential \
     python3 \
-    pkgconf \
-    g++ \
-    cairo-dev \
-    jpeg-dev \
-    pango-dev \
-    giflib-dev \
-    librsvg-dev \
-    freetype-dev \
-    harfbuzz-dev \
-    fribidi-dev \
-    udev \
-    ttf-opensans \
+    pkg-config \
+    libcairo2-dev \
+    libjpeg-dev \
+    libpango1.0-dev \
+    libgif-dev \
+    librsvg2-dev \
+    libfreetype6-dev \
+    libharfbuzz-dev \
+    libfribidi-dev \
+    fonts-dejavu \
     fontconfig \
-    curl
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 ENV npm_config_python=/usr/bin/python3
 
@@ -32,39 +31,43 @@ ENV NEXT_PUBLIC_OPEN_SOURCE_URL=$NEXT_PUBLIC_OPEN_SOURCE_URL
 ENV NEXT_PUBLIC_DEFAULT_LOCALE=$NEXT_PUBLIC_DEFAULT_LOCALE
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV DOCKER_BUILD=true
+# Increase Node.js memory limit for Next.js build
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 
 COPY . .
 # Replace relative image paths with CDN URLs
 RUN chmod +x ./scripts/replace-image-paths.sh && ./scripts/replace-image-paths.sh
 RUN npm install && npm run build
+# Remove development dependencies to reduce final image size
+RUN npm prune --production
 
 FROM base AS runner
-RUN apk add --no-cache curl cairo-dev \
-    pango-dev \
-    libjpeg-turbo \
-    giflib-dev \
-    librsvg-dev \
-    build-base \
-    python3 \
-    pkgconf
+# Runtime libraries for canvas and image processing support
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    libcairo2 \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libjpeg62-turbo \
+    libgif7 \
+    librsvg2-2 \
+    fontconfig \
+    libfreetype6 \
+    libharfbuzz0b \
+    libfribidi0 \
+    fonts-dejavu \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 WORKDIR /app
-ENV npm_config_python=/usr/bin/python3
 
-COPY ./package*.json ./
-COPY ./next* ./
-COPY ./postcss.config.js ./
-COPY ./tsconfig.json ./
-COPY ./source.config.ts ./
-
-# Install only production dependencies
-RUN npm ci --only=production && npm cache clean --force
-
-# Copy built application
+# Copy built application and node_modules from builder
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 
 USER nextjs
 
