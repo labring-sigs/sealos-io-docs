@@ -5,6 +5,8 @@ RUN apk add --no-cache \
     libc6-compat \
     git \
     build-base \
+    python3 \
+    pkgconf \
     g++ \
     cairo-dev \
     jpeg-dev \
@@ -19,6 +21,7 @@ RUN apk add --no-cache \
     fontconfig \
     curl
 WORKDIR /app
+ENV npm_config_python=/usr/bin/python3
 
 ARG NEXT_PUBLIC_APP_URL
 ARG NEXT_PUBLIC_OPEN_SOURCE_URL
@@ -29,6 +32,7 @@ ENV NEXT_PUBLIC_OPEN_SOURCE_URL=$NEXT_PUBLIC_OPEN_SOURCE_URL
 ENV NEXT_PUBLIC_DEFAULT_LOCALE=$NEXT_PUBLIC_DEFAULT_LOCALE
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV DOCKER_BUILD=true
+RUN npm config set python /usr/bin/python3
 
 COPY . .
 # Replace relative image paths with CDN URLs
@@ -41,11 +45,14 @@ RUN apk add --no-cache curl cairo-dev \
     libjpeg-turbo \
     giflib-dev \
     librsvg-dev \
-    build-base
+    build-base \
+    python3 \
+    pkgconf
 ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 WORKDIR /app
+ENV npm_config_python=/usr/bin/python3
 
 COPY ./package*.json ./
 COPY ./next* ./
