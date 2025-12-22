@@ -3,6 +3,8 @@ name: Docker Build & Publish
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 env:
@@ -59,7 +61,7 @@ jobs:
           context: .
           file: ./Dockerfile
           platforms: linux/amd64
-          push: true
+          push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
