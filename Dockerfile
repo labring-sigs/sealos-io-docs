@@ -1,25 +1,24 @@
-FROM node:20-alpine AS base
+FROM node:20-slim AS base
 
 FROM base AS builder
-RUN apk add --no-cache \
-    libc6-compat \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
-    build-base \
+    build-essential \
     python3 \
-    pkgconf \
-    g++ \
-    cairo-dev \
-    jpeg-dev \
-    pango-dev \
-    giflib-dev \
-    librsvg-dev \
-    freetype-dev \
-    harfbuzz-dev \
-    fribidi-dev \
-    udev \
-    ttf-opensans \
+    pkg-config \
+    libcairo2-dev \
+    libjpeg-dev \
+    libpango1.0-dev \
+    libgif-dev \
+    librsvg2-dev \
+    libfreetype6-dev \
+    libharfbuzz-dev \
+    libfribidi-dev \
+    fonts-dejavu \
     fontconfig \
-    curl
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 ENV npm_config_python=/usr/bin/python3
 
@@ -42,16 +41,21 @@ RUN npm prune --production
 
 FROM base AS runner
 # Runtime libraries for canvas and image processing support
-RUN apk add --no-cache curl \
-    cairo \
-    pango \
-    libjpeg-turbo \
-    giflib \
-    librsvg \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    libcairo2 \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libjpeg62-turbo \
+    libgif7 \
+    librsvg2-2 \
     fontconfig \
-    freetype \
-    harfbuzz \
-    fribidi
+    libfreetype6 \
+    libharfbuzz0b \
+    libfribidi0 \
+    fonts-dejavu \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
