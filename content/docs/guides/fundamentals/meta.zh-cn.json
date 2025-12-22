@@ -1,0 +1,5 @@
+{
+    "title": "DevBox",
+    "pages": ["create-a-project", "develop", "entrypoint-sh", "release", "deploy", "template-market"],
+    "defaultOpen": true
+}

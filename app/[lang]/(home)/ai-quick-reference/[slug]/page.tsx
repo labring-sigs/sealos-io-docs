@@ -1,0 +1,323 @@
+import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import React from 'react';
+import { DocsBody } from 'fumadocs-ui/page';
+import { FAQTag } from '@/new-components/FAQTag';
+import { FAQCard } from '@/new-components/FAQCard';
+import {
+  getFAQBySlug,
+  findRelatedFAQs,
+  getAdjacentFAQs,
+  getAllFAQs,
+  getFAQsByCategory,
+  pageToFAQItem,
+  getCategory,
+} from '@/lib/utils/faq-utils';
+import { faqSource } from '@/lib/source';
+import { GodRays } from '@/new-components/GodRays';
+import { SealosBrandCard } from '@/new-components/SealosBrandCard';
+import { SocialLinks } from '@/new-components/SocialLinks';
+import { GradientText } from '@/new-components/GradientText';
+import { getPageUrl, generatePageMetadata } from '@/lib/utils/metadata';
+import { Metadata } from 'next';
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string; lang: string }>;
+}): Promise<Metadata> {
+  const { slug, lang } = await params;
+  const faqPage = getFAQBySlug(slug, lang);
+
+  if (!faqPage) {
+    return {};
+  }
+
+  const faqItem = pageToFAQItem(faqPage);
+
+  return generatePageMetadata({
+    title: faqItem.title,
+    description: faqItem.description,
+    pathname: `/ai-quick-reference/${slug}`,
+    lang,
+  });
+}
+
+interface PageProps {
+  params: Promise<{
+    slug: string;
+    lang: string;
+  }>;
+}
+
+export default async function FAQDetailPage({ params }: PageProps) {
+  const { slug, lang } = await params;
+
+  // Get FAQ page from source
+  const faqPage = getFAQBySlug(slug, lang);
+  if (!faqPage) {
+    notFound();
+  }
+
+  const faqItem = pageToFAQItem(faqPage);
+
+  // Generate full page URL for social sharing
+  const pageUrl = getPageUrl(lang, faqPage.url);
+  const category = faqItem.category;
+
+  // Get related FAQs
+  const relatedPages = findRelatedFAQs(slug, lang, 4);
+  const relatedQuestions = relatedPages.map((page) => {
+    const item = pageToFAQItem(page);
+    return {
+      tag: {
+        label: item.category,
+      },
+      title: item.title,
+      description: item.description,
+      href: `/${lang}${page.url}`,
+    };
+  });
+
+  // Get adjacent FAQs
+  const { previous, next } = getAdjacentFAQs(slug, lang);
+
+  // Get keep reading from the same category, excluding current page and related questions
+  const relatedSlugs = new Set(
+    relatedPages.map((p) => p.url.split('/').pop() || ''),
+  );
+  const keepReadingPages = getFAQsByCategory(category, lang)
+    .filter((page) => {
+      const pageSlug = page.url.split('/').pop() || '';
+      return (
+        pageSlug !== slug &&
+        pageSlug.replace(/^\d+-/, '') !== slug.replace(/^\d+-/, '') &&
+        !relatedSlugs.has(pageSlug)
+      );
+    })
+    .slice(0, 4);
+
+  // If not enough from same category, fill with other categories
+  if (keepReadingPages.length < 4) {
+    const additionalPages = getAllFAQs(lang)
+      .filter((page) => {
+        const pageSlug = page.url.split('/').pop() || '';
+        const pageCategory = getCategory(page);
+        return (
+          pageCategory !== category &&
+          pageSlug !== slug &&
+          pageSlug.replace(/^\d+-/, '') !== slug.replace(/^\d+-/, '') &&
+          !relatedSlugs.has(pageSlug)
+        );
+      })
+      .slice(0, 4 - keepReadingPages.length);
+    keepReadingPages.push(...additionalPages);
+  }
+  const keepReading = keepReadingPages.map((page) => ({
+    title: (page.data.title as string) || '',
+    href: `/${lang}${page.url}`,
+  }));
+
+  // Get content from page data (from fumadocs collections)
+  const content = ((faqPage.data as any).content as string) || '';
+
+  // Split content into paragraphs (two newlines = paragraph break)
+  const paragraphs = content
+    .split(/\n\n+/)
+    .map((p) => p.trim())
+    .filter((p) => p.length > 0);
+
+  return (
+    <>
+      <GodRays
+        sources={[
+          {
+            x: -0.05,
+            y: -0.05,
+            angle: 60,
+            spread: 20,
+            count: 12,
+            color: '220, 220, 220',
+            opacityMin: 0.24,
+            opacityMax: 0.25,
+            minWidth: 120,
+            maxWidth: 180,
+          },
+          {
+            x: -0.05,
+            y: -0.05,
+            angle: 60,
+            spread: 8,
+            count: 6,
+            color: '255, 255, 255',
+            opacityMin: 0.89,
+            opacityMax: 0.9,
+            minWidth: 12,
+            maxWidth: 24,
+          },
+          {
+            x: 0.25,
+            y: -0.06,
+            angle: 50,
+            spread: 20,
+            count: 6,
+            color: '180, 180, 180',
+            opacityMin: 0.14,
+            opacityMax: 0.15,
+            minWidth: 60,
+            maxWidth: 120,
+          },
+        ]}
+        speed={0.0}
+        maxWidth={48}
+        minLength={1200}
+        maxLength={2000}
+        blur={8}
+      />
+      <div className="container -mt-24 pt-44 pb-20">
+        {/* Back Button */}
+        <Link
+          href={`/${lang}/ai-quick-reference`}
+          className="text-muted-foreground hover:text-foreground mb-14 inline-flex items-center gap-2 text-sm transition-colors"
+        >
+          <ChevronLeft size={16} />
+          <span>Back to FAQ</span>
+        </Link>
+
+        <div className="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_360px]">
+          {/* Main Content */}
+          <article>
+            <div className="mb-12 flex flex-col gap-5">
+              {/* Tag */}
+              <div>
+                <FAQTag label={category} color="bg-blue-400" />
+              </div>
+
+              {/* Title */}
+              <h1 className="text-4xl leading-[40px] font-semibold">
+                <GradientText>{faqItem.title}</GradientText>
+              </h1>
+            </div>
+
+            {/* Main Content - Render text paragraphs */}
+            <div className="mb-14">
+              <DocsBody>
+                <div className="prose prose-invert max-w-none">
+                  {paragraphs.map((paragraph, index) => (
+                    <p
+                      key={index}
+                      className="mb-4 leading-relaxed text-zinc-300"
+                    >
+                      {paragraph}
+                    </p>
+                  ))}
+                </div>
+              </DocsBody>
+            </div>
+
+            {/* Prev/Next Navigation */}
+            <div className="flex gap-3">
+              {previous ? (
+                <Link
+                  href={`/${lang}${previous.url}`}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/15"
+                >
+                  <ChevronLeft size={16} />
+                  <span>Previous</span>
+                </Link>
+              ) : (
+                <div className="flex flex-1" />
+              )}
+              {next ? (
+                <Link
+                  href={`/${lang}${next.url}`}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/15"
+                >
+                  <span>Next</span>
+                  <ChevronRight size={16} />
+                </Link>
+              ) : (
+                <div className="flex flex-1" />
+              )}
+            </div>
+          </article>
+
+          {/* Sidebar */}
+          <aside className="flex flex-col gap-10 sm:flex-row sm:gap-6 lg:sticky lg:top-28 lg:h-fit lg:flex-col lg:gap-12">
+            <div>
+              <SealosBrandCard />
+              <SocialLinks url={pageUrl} title={faqItem.title} />
+            </div>
+
+            {/* Keep Reading */}
+            <div className="flex w-full flex-col gap-6">
+              <h2 className="text-lg font-bold">Keep Reading</h2>
+              <div className="flex flex-col gap-3">
+                {keepReading.map((item, index) => (
+                  <Link
+                    key={index}
+                    href={item.href}
+                    className="border-border bg-card text-muted-foreground hover:text-foreground rounded-xl border p-4 text-sm transition-colors"
+                  >
+                    <span className="line-clamp-1">{item.title}</span>
+                  </Link>
+                ))}
+              </div>
+              <Link
+                href={`/${lang}/ai-quick-reference`}
+                className="text-muted-foreground hover:text-foreground inline-flex items-center gap-2 text-sm font-medium transition-colors"
+              >
+                <span>All Frequently Asked Questions</span>
+                <ArrowRight
+                  size={16}
+                  className="transition-transform group-hover:translate-x-1"
+                />
+              </Link>
+            </div>
+          </aside>
+
+          {/* Related Questions */}
+          <div className="order-1 mt-4 lg:order-2">
+            <h2 className="mb-8 text-2xl font-semibold">Related Questions</h2>
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
+              {relatedQuestions.map((question, index) => (
+                <FAQCard
+                  key={index}
+                  tag={question.tag}
+                  title={question.title}
+                  description={question.description}
+                  href={question.href}
+                  // Show only 2 entries when screen width < sm
+                  className="not-nth-[-n_+_2]:hidden sm:not-nth-[-n_+_2]:block"
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export async function generateStaticParams() {
+  // Generate params for all languages
+  // Since we only have English content, we'll generate params for both languages
+  // but the content will fallback to English
+  const languages = ['en', 'zh-cn'];
+  const params: Array<{ lang: string; slug: string }> = [];
+
+  // Get all pages from the default language (English)
+  const defaultPages = faqSource.getPages('en');
+
+  for (const lang of languages) {
+    for (const page of defaultPages) {
+      const slug = page.slugs[0];
+      if (slug) {
+        params.push({ lang, slug });
+      }
+    }
+  }
+
+  return params;
+}
