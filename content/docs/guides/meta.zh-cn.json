@@ -1,4 +1,4 @@
 {
     "title": "指南",
-    "pages": ["fundamentals", "app-launchpad", "databases", "app-store","object-storage", "cronjob"]
+    "pages": ["fundamentals", "app-launchpad", "databases", "app-store", "ai-proxy", "ai-proxy-channel", "object-storage", "cronjob"]
 }
