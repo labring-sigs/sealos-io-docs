@@ -51,6 +51,15 @@ PR 触发时更新预览环境镜像。
 - 仅更新镜像，不做其他部署变更
 - 命名空间与镜像仓库通过仓库变量配置
 
+### 需求: 自动发布流水线
+**模块:** config
+主分支构建完成后自动发布镜像到集群。
+
+#### 场景: 自动更新线上镜像
+使用 `KUBE_BASE64` secrets 配置 kubectl 并执行 `kubectl set image`。
+- 通过仓库变量提供命名空间、Deployment 与容器名
+- 优先使用 `DEPLOY_IMAGE_TAG`，默认回退到构建时间戳
+
 ## API接口
 暂无
 
@@ -62,3 +71,4 @@ PR 触发时更新预览环境镜像。
 
 ## 变更历史
 - [202601201927_pr-preview-workflow](../../history/2026-01/202601201927_pr-preview-workflow/) - 新增 PR 预览环境工作流
+- [202601202317_ci-auto-deploy](../../history/2026-01/202601202317_ci-auto-deploy/) - 流水线自动发布到集群
