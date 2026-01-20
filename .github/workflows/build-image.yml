@@ -60,11 +60,11 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=${{ needs.meta.outputs.datetime }}
+            type=raw,value=latest
             type=sha
             type=ref,event=branch
             type=ref,event=tag
           flavor: |
-            latest=true
             suffix=-${{ matrix.arch }}
 
       - name: Build and push 🏗️

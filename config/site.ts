@@ -2,7 +2,27 @@ import { SiteConfig } from '@/types';
 import { i18n } from '@/lib/i18n';
 import { getOpenBrainParam } from '@/lib/utils/brain';
 
-export const domain = process.env.NEXT_PUBLIC_APP_URL || 'https://sealos.io';
+const DEFAULT_APP_URL = 'https://sealos.io';
+
+const getServerEnv = (key: string) => {
+  if (typeof process === 'undefined' || !process.env) {
+    return undefined;
+  }
+  return process.env[key];
+};
+
+const getAppUrl = () => {
+  if (typeof window !== 'undefined') {
+    return DEFAULT_APP_URL;
+  }
+  return (
+    getServerEnv('APP_URL') ||
+    getServerEnv('NEXT_PUBLIC_APP_URL') ||
+    DEFAULT_APP_URL
+  );
+};
+
+export const domain = getAppUrl();
 
 export const appDomain = 'https://os.sealos.io';
 export const templateDomain =
@@ -63,9 +83,7 @@ export const siteConfig: SiteConfig = {
     wechat:
       'https://objectstorageapi.hzh.sealos.run/inmu3p0p-sealos/images/sealos-qr-code.jpg',
   },
-  ogImage: `${
-    process.env.NEXT_PUBLIC_APP_URL
-  }/images/banner.jpeg?${new Date().getTime()}`,
+  ogImage: `${getAppUrl()}/images/banner.jpeg?${new Date().getTime()}`,
   turnstileEnabled: true,
   turnstileSitekey: '0x4AAAAAABmIoQ_LAxlvw78V',
   emailRequestEndpoint: 'https://usw.sealos.io/api/auth/email/sms',
