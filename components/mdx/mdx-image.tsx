@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 const CDN_PATTERN = /^https?:\/\/images\.sealos\.run/;
 const APP_URL_PLACEHOLDER = '__APP_URL__';
+const APP_URL_PREFIX_PATTERN = /^https?:\/\/__APP_URL__/;
 
 type MdxImageSrc =
   | React.ImgHTMLAttributes<HTMLImageElement>['src']
@@ -23,6 +24,9 @@ const getRuntimeBaseUrl = () => {
 const resolveImageSrcValue = (src: string) => {
   const runtimeBase = getRuntimeBaseUrl();
   if (!runtimeBase) return src;
+  if (APP_URL_PREFIX_PATTERN.test(src)) {
+    return src.replace(APP_URL_PREFIX_PATTERN, runtimeBase);
+  }
   if (src.includes(APP_URL_PLACEHOLDER)) {
     return src.replace(APP_URL_PLACEHOLDER, runtimeBase);
   }

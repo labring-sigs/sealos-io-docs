@@ -2,9 +2,9 @@ import { blog } from '@/lib/source';
 import { DocsBody } from 'fumadocs-ui/page';
 import { notFound } from 'next/navigation';
 import defaultMdxComponents from 'fumadocs-ui/mdx';
-import { ImageZoom } from 'fumadocs-ui/components/image-zoom';
 import React from 'react';
 import { generateBlogMetadata } from '@/lib/utils/metadata';
+import { MdxImage } from '@/components/mdx/mdx-image';
 
 import { remark } from 'remark';
 import html from 'remark-html';
@@ -58,7 +58,7 @@ export default async function BlogPage({
             ...defaultMdxComponents,
             img: (props: React.ImgHTMLAttributes<HTMLImageElement>) => (
               <div className="image-container">
-                <ImageZoom {...props} className="rounded-xl" />
+                <MdxImage {...props} />
                 {props.alt && (
                   <span className="image-caption">{props.alt}</span>
                 )}
