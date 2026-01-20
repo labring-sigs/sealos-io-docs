@@ -35,10 +35,11 @@ ENV DOCKER_BUILD=true
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm ci --ignore-scripts
 COPY . .
 # Replace relative image paths with CDN URLs
 RUN chmod +x ./scripts/replace-image-paths.sh && ./scripts/replace-image-paths.sh
+RUN npm run postinstall
 RUN npm run build
 # Remove development dependencies to reduce final image size
 RUN npm prune --production

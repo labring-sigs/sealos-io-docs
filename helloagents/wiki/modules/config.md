@@ -33,6 +33,11 @@
 - 使用 GHA 缓存（cache-from/cache-to）
 - 依赖层变更最小化以提升命中率
 
+#### 场景: 原生 ARM 构建
+使用官方 arm64 Runner 进行原生构建，避免 QEMU。
+- arm64 使用 ubuntu-24.04-arm
+- 通过 manifest 合并输出双架构镜像
+
 ## API接口
 暂无
 

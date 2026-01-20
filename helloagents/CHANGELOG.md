@@ -10,3 +10,4 @@
 - 初始化知识库（helloagents）
 - 流水线镜像构建支持双架构
 - 流水线构建增加 Buildx 缓存并优化构建分层
+- 流水线改为原生 ARM Runner 构建并修复 Dockerfile 安装流程
