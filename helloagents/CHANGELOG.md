@@ -10,6 +10,7 @@
 - 新增 AI Proxy 渠道配置文档
 - 新增 Sealos Hub 镜像上传文档
 - 新增 PR 预览环境工作流
+- 支持 MDX 图片运行时域名
 
 ### 变更
 - 初始化知识库（helloagents）

@@ -1,6 +1,5 @@
 import { source } from '@/lib/source';
 import defaultMdxComponents from 'fumadocs-ui/mdx';
-import { ImageZoom } from 'fumadocs-ui/components/image-zoom';
 import {
   DocsBody,
   DocsDescription,
@@ -13,6 +12,7 @@ import { generateDocsMetadata, getPageUrl } from '@/lib/utils/metadata';
 import { languagesType } from '@/lib/i18n';
 import { SealosBrandCard } from '@/new-components/SealosBrandCard';
 import { SocialLinks } from '@/new-components/SocialLinks';
+import { MdxImage } from '@/components/mdx/mdx-image';
 
 export default async function Page({
   params,
@@ -50,9 +50,7 @@ export default async function Page({
             ...defaultMdxComponents,
             Tabs,
             Tab,
-            img: (props) => (
-              <ImageZoom {...(props as any)} className="rounded-xl" />
-            ),
+            img: (props) => <MdxImage {...props} />,
           }}
         />
       </DocsBody>
