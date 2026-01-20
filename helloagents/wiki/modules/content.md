@@ -28,6 +28,16 @@
 - 指引包含提供商、渠道名、模型、API Key、URL 配置步骤
 - URL 可选项需提示 OpenAI 兼容服务的 `/v1` 后缀
 
+### 需求: Sealos Hub 镜像上传文档
+**模块:** content
+新增 Sealos Hub 镜像上传与应用管理使用的操作指南。
+
+#### 场景: 上传镜像并在应用管理使用
+获取 Sealos Hub 账号密码后推送镜像，并在应用管理中引用镜像部署。
+- 指引包含账号凭据获取、镜像登录与推送步骤
+- 上传镜像地址统一为 `hub.clusterDomain`（`hub.<clusterDomain>` 后缀占位符），并说明跳过证书验证方式
+- 应用管理中使用镜像的填写规则与凭据说明
+
 ## API接口
 暂无
 
@@ -39,3 +49,4 @@
 
 ## 变更历史
 - [202601201726_aiproxy-channel-doc](../../history/2026-01/202601201726_aiproxy-channel-doc/) - 新增 AI Proxy 渠道配置文档与配图
+- [202601201758_sealos-hub-image-upload-doc](../../history/2026-01/202601201758_sealos-hub-image-upload-doc/) - 新增 Sealos Hub 镜像上传文档

@@ -38,6 +38,15 @@
 - arm64 使用 ubuntu-24.04-arm
 - 通过 manifest 合并输出双架构镜像
 
+### 需求: PR 预览环境流水线
+**模块:** config
+PR 触发时更新预览环境镜像。
+
+#### 场景: Preview 更新镜像
+使用 `KUBE_BASE64` secrets 配置 kubectl 并执行 `kubectl set image`。
+- 仅更新镜像，不做其他部署变更
+- 命名空间与镜像仓库通过仓库变量配置
+
 ## API接口
 暂无
 
@@ -48,4 +57,4 @@
 - 待补充
 
 ## 变更历史
-- 暂无
+- [202601201927_pr-preview-workflow](../../history/2026-01/202601201927_pr-preview-workflow/) - 新增 PR 预览环境工作流

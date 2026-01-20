@@ -3,6 +3,7 @@
     "defaultOpen": false,
     "pages": [
         "create-app",
+        "sealos-hub-image-upload",
         "docker-compose-migration",
         "update-apps",
         "add-a-domain",
