@@ -34,10 +34,12 @@ ENV DOCKER_BUILD=true
 # Increase Node.js memory limit for Next.js build
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 
+COPY package.json package-lock.json ./
+RUN npm ci
 COPY . .
 # Replace relative image paths with CDN URLs
 RUN chmod +x ./scripts/replace-image-paths.sh && ./scripts/replace-image-paths.sh
-RUN npm install && npm run build
+RUN npm run build
 # Remove development dependencies to reduce final image size
 RUN npm prune --production
 
