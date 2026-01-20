@@ -6,6 +6,9 @@
 
 ## [Unreleased]
 
+### 新增
+- 新增 AI Proxy 渠道配置文档
+
 ### 变更
 - 初始化知识库（helloagents）
 - 流水线镜像构建支持双架构

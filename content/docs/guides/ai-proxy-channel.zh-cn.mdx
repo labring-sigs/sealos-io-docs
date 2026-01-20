@@ -1,0 +1,27 @@
+---
+title: AI Proxy 渠道配置
+description: 在 AI Proxy 中新增渠道并配置 OpenAI 及兼容模型的指南。
+keywords: ["AI Proxy", "Aiproxy", "渠道配置", "OpenAI", "API Key", "模型"]
+---
+
+## 进入渠道管理
+
+在 AI Proxy 中选择【渠道管理】，点击【添加渠道】。
+
+![渠道管理入口](./images/ai-proxy-admin.png)
+
+## 添加渠道
+
+点击【添加渠道】后进入配置页。
+
+![添加渠道入口](./images/ai-proxy-add-channel.png)
+
+填写渠道信息并保存。
+
+![渠道配置表单](./images/ai-proxy-channel.png)
+
+1. 选择提供商为 `openai`。
+2. 填写渠道名（便于区分环境或用途）。
+3. 添加模型到渠道（可按需添加多个模型）。
+4. 填写 API Key（妥善保管，避免泄露）。
+5. （可选）填写 URL 地址。如接入 OpenAI 兼容服务，通常需要添加 `/v1` 后缀。
