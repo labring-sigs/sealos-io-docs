@@ -1,7 +1,7 @@
 'use client';
 
 import { ImageZoom } from 'fumadocs-ui/components/image-zoom';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 const CDN_PATTERN = /^https?:\/\/images\.sealos\.run/;
 const APP_URL_PLACEHOLDER = '__APP_URL__';
@@ -56,15 +56,35 @@ const resolveImageSrc = (src: MdxImageSrc) => {
 };
 
 export function MdxImage(props: React.ImgHTMLAttributes<HTMLImageElement>) {
-  const { className, src, ...rest } = props;
+  const { className, src, onError, ...rest } = props;
   const resolvedSrc = useMemo(() => resolveImageSrc(src), [src]);
+  const [currentSrc, setCurrentSrc] = useState<MdxImageSrc>(resolvedSrc);
+  const [didFallback, setDidFallback] = useState(false);
+  const originalSrcRef = useRef<MdxImageSrc>(src);
+  const resolvedSrcRef = useRef<MdxImageSrc>(resolvedSrc);
   const mergedClassName = ['rounded-xl', className].filter(Boolean).join(' ');
+
+  useEffect(() => {
+    originalSrcRef.current = src;
+    resolvedSrcRef.current = resolvedSrc;
+    setCurrentSrc(resolvedSrc);
+    setDidFallback(false);
+  }, [src, resolvedSrc]);
+
+  const handleError: React.ReactEventHandler<HTMLImageElement> = (event) => {
+    onError?.(event);
+    if (didFallback) return;
+    if (resolvedSrcRef.current === originalSrcRef.current) return;
+    setDidFallback(true);
+    setCurrentSrc(originalSrcRef.current);
+  };
 
   return (
     <ImageZoom
       {...(rest as any)}
-      src={resolvedSrc}
+      src={currentSrc}
       className={mergedClassName}
+      onError={handleError}
     />
   );
 }

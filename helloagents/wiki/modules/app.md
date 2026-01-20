@@ -28,6 +28,15 @@
 - 图片可随部署域名切换
 - 保持 ImageZoom 交互体验
 
+### 需求: content 图片直出
+**模块:** app
+提供 `/content/*` 路由直接读取仓库 `content/` 目录中的图片资源。
+
+#### 场景: 文档图片直出
+图片请求可通过 `/content/...` 访问到 `content/` 内的图片文件。
+- 限制仅允许图片扩展名
+- 防止路径穿越
+
 ## API接口
 暂无
 
@@ -42,3 +51,4 @@
 
 ## 变更历史
 - [202601202148_mdx-image-runtime-base](../../history/2026-01/202601202148_mdx-image-runtime-base/) - 支持 MDX 图片运行时域名
+- [202601202306_content-image-route](../../history/2026-01/202601202306_content-image-route/) - 支持 content 图片直出
