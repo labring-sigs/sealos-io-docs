@@ -1,0 +1,61 @@
+---
+title: 上传镜像到 Sealos
+description: 获取 sealos 账号密码，将镜像推送到 hub.clusterDomain，并在应用管理中使用。
+keywords: [Sealos Hub, 镜像上传, 镜像仓库, 应用管理, Docker, sealos.hub, hub.clusterDomain]
+---
+
+## 获取 sealos.hub 账号密码
+
+1. 打开 Sealos 控制台，进入【Sealos Hub】或【镜像仓库】应用 (当前版本直接登录sealos机器查看`cat /etc/image-cri-shim.yaml `)。
+2. 在【访问凭据/账号信息】中获取仓库地址、用户名和密码。
+3. 记录仓库地址，用于上传镜像的地址为 `hub.clusterDomain`（占位符，实际使用为 `hub.<clusterDomain>` 形式的后缀）。
+
+<Callout type="warning">
+    请勿在文档、脚本或代码仓库中记录真实密码，建议使用密码管理工具保存凭据。
+</Callout>
+
+## 使用跳过证书的方式上传镜像
+
+### 配置 Docker 跳过证书验证
+
+将 `hub.clusterDomain` 配置为不校验证书的镜像仓库。
+
+```json
+{
+  "insecure-registries": ["hub.clusterDomain"]
+}
+```
+
+保存后重启 Docker 服务使配置生效。
+
+### 登录仓库
+
+```bash
+docker login hub.clusterDomain
+```
+
+如控制台显示的仓库地址不同，请替换为实际地址。
+
+### 标记镜像
+
+```bash
+docker tag my-app:latest hub.clusterDomain/<namespace>/my-app:latest
+```
+
+### 推送镜像
+
+```bash
+docker push hub.clusterDomain/<namespace>/my-app:latest
+```
+
+<Callout type="info">
+    `<namespace>` 通常为你的用户名或团队/组织名称。如果控制台显示了专属命名空间，以该值为准。
+</Callout>
+
+## 在应用管理中使用镜像
+
+1. 进入【应用管理】并点击【新建应用】。
+2. 在镜像名称中填写 `hub.clusterDomain/<namespace>/my-app:latest`。
+3. 完成其余配置并部署应用。
+
+可参考 [安装应用](./create-app) 了解完整的部署流程。

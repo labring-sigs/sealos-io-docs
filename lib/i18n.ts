@@ -11,7 +11,7 @@ export const i18n: I18nConfig = {
 };
 
 export const locales: Array<{ name: string; locale: languagesType }> = [
-  { name: 'English', locale: 'en' },
+  // { name: 'English', locale: 'en' },
   { name: '简体中文', locale: 'zh-cn' },
 ];
 

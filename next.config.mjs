@@ -1,22 +1,22 @@
-import { createMDX } from 'fumadocs-mdx/next';
+import { createMDX } from 'fumadocs-mdx/next'
 
-const withMDX = createMDX();
+const withMDX = createMDX()
 
 // Only import and use bundle analyzer when needed to avoid production dependency issues
-let withBundleAnalyzer = (config) => config;
+let withBundleAnalyzer = (config) => config
 if (process.env.ANALYZE === 'true') {
   try {
     // Use dynamic import with require for compatibility
-    const bundleAnalyzer = require('@next/bundle-analyzer');
+    const bundleAnalyzer = require('@next/bundle-analyzer')
     withBundleAnalyzer = bundleAnalyzer({
       enabled: true,
-    });
+    })
   } catch (error) {
     console.warn(
       'Bundle analyzer not available, skipping analysis:',
       error.message,
-    );
-    withBundleAnalyzer = (config) => config;
+    )
+    withBundleAnalyzer = (config) => config
   }
 }
 
@@ -37,7 +37,7 @@ const securityHeaders = [
     key: 'X-XSS-Protection',
     value: '1; mode=block', // optional, deprecated
   },
-];
+]
 
 /** @type {import('next').NextConfig} */
 const config = {
@@ -52,8 +52,8 @@ const config = {
     removeConsole:
       process.env.NODE_ENV === 'production'
         ? {
-            exclude: ['error', 'warn'],
-          }
+          exclude: ['error', 'warn'],
+        }
         : false,
   },
   // Enable static generation optimization
@@ -68,16 +68,21 @@ const config = {
       '@radix-ui/react-slot',
     ],
   },
-  async headers() {
+  async headers () {
     return [
       {
         source: '/(.*)',
         headers: securityHeaders,
       },
-    ];
+    ]
   },
-  async redirects() {
+  async redirects () {
     return [
+      {
+        source: '/',
+        destination: '/docs',
+        permanent: false,
+      },
       {
         source: '/devbox',
         destination: '/products/devbox',
@@ -88,7 +93,7 @@ const config = {
         destination: '/solutions/industries/education',
         permanent: true,
       },
-    ];
+    ]
   },
   images: {
     // Only disable image optimization during Docker builds
@@ -128,6 +133,6 @@ const config = {
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
-};
+}
 
-export default withBundleAnalyzer(withMDX(config));
+export default withBundleAnalyzer(withMDX(config))
