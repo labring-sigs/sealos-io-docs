@@ -3,6 +3,8 @@ name: Docker Build & Publish
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 env:
@@ -10,11 +12,29 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build:
-    name: Build and Push Docker Image
-    runs-on: ubuntu-latest
+  meta:
+    name: Prepare metadata
+    runs-on: ubuntu-24.04
+    outputs:
+      datetime: ${{ steps.datetime.outputs.datetime }}
+    steps:
+      - name: Get current date and time
+        id: datetime
+        run: echo "datetime=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
+
+  image-build:
+    name: Build and Push (${{ matrix.arch }})
+    needs: meta
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+          - arch: arm64
+            runs-on: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runs-on || 'ubuntu-24.04' }}
     permissions:
       contents: read
+      actions: write
       packages: write
 
     steps:
@@ -22,13 +42,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Get current date and time
-        id: datetime
-        run: echo "datetime=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx 🚀
         uses: docker/setup-buildx-action@v3
@@ -46,44 +59,119 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=${{ steps.datetime.outputs.datetime }}
+            type=raw,value=${{ needs.meta.outputs.datetime }}
+            type=raw,value=latest
             type=sha
             type=ref,event=branch
             type=ref,event=tag
           flavor: |
-            latest=true
+            suffix=-${{ matrix.arch }}
 
       - name: Build and push 🏗️
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
-          platforms: linux/amd64
-          push: true
+          platforms: linux/${{ matrix.arch }}
+          push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.arch }}
           build-args: |
             NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}
             NEXT_PUBLIC_OPEN_SOURCE_URL=${{ secrets.NEXT_PUBLIC_OPEN_SOURCE_URL }}
             NEXT_PUBLIC_DEFAULT_LOCALE=${{ secrets.NEXT_PUBLIC_DEFAULT_LOCALE }}
 
-    outputs:
-      tags: ${{ steps.datetime.outputs.datetime }}
-
-  update-image:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.repository == 'labring/sealos.io'
+  merge:
+    name: Create multi-arch manifest
+    needs: [meta, image-build]
+    if: ${{ github.event_name != 'pull_request' }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - uses: actions-hub/kubectl@master
-        env:
-          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+      - name: Set up Docker Buildx 🚀
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry 🚢
+        uses: docker/login-action@v3
         with:
-          args: set image deployment/sealos-docs sealos-docs=ghcr.io/labring/sealos.io:${{ needs.build.outputs.tags }}
-      - uses: actions-hub/kubectl@master
-        env:
-          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
         with:
-          args: annotate deployment/sealos-docs originImageName="ghcr.io/labring/sealos.io:${{ needs.build.outputs.tags }}" --overwrite
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=${{ needs.meta.outputs.datetime }}
+            type=sha
+            type=ref,event=branch
+            type=ref,event=tag
+          flavor: |
+            latest=true
+
+      - name: Create manifest list
+        run: |
+          tags="${{ steps.meta.outputs.tags }}"
+          for tag in $tags; do
+            docker buildx imagetools create -t "$tag" "${tag}-amd64" "${tag}-arm64"
+          done
+          docker buildx imagetools inspect "$tag"
+
+  deploy:
+    name: Deploy to cluster
+    needs: [meta, merge]
+    if: ${{ github.event_name != 'pull_request' }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    env:
+      DEPLOY_NAMESPACE: ${{ vars.DEPLOY_NAMESPACE }}
+      DEPLOYMENT_NAME: ${{ vars.DEPLOYMENT_NAME }}
+      DEPLOYMENT_CONTAINER: ${{ vars.DEPLOYMENT_CONTAINER }}
+      DEPLOY_IMAGE_TAG: ${{ vars.DEPLOY_IMAGE_TAG }}
+    steps:
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Configure kubeconfig
+        env:
+          KUBE_BASE64: ${{ secrets.KUBE_BASE64 }}
+        run: |
+          if [ -z "${KUBE_BASE64}" ]; then
+            echo "KUBE_BASE64 is required." >&2
+            exit 1
+          fi
+          mkdir -p ~/.kube
+          echo "${KUBE_BASE64}" | base64 -d > ~/.kube/config
+
+      - name: Validate deployment settings
+        run: |
+          if [ -z "${DEPLOY_NAMESPACE}" ]; then
+            echo "DEPLOY_NAMESPACE is required (repo variable)." >&2
+            exit 1
+          fi
+          if [ -z "${DEPLOYMENT_NAME}" ]; then
+            echo "DEPLOYMENT_NAME is required (repo variable)." >&2
+            exit 1
+          fi
+          if [ -z "${DEPLOYMENT_CONTAINER}" ]; then
+            echo "DEPLOYMENT_CONTAINER is required (repo variable)." >&2
+            exit 1
+          fi
+
+      - name: Update deployment image
+        run: |
+          IMAGE_TAG="${DEPLOY_IMAGE_TAG}"
+          if [ -z "$IMAGE_TAG" ]; then
+            IMAGE_TAG="${{ needs.meta.outputs.datetime }}"
+          fi
+          IMAGE="${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
+          echo "Deploying ${IMAGE} to ${DEPLOYMENT_NAME} (${DEPLOYMENT_CONTAINER}) in ${DEPLOY_NAMESPACE}"
+          kubectl -n "${DEPLOY_NAMESPACE}" set image "deployment/${DEPLOYMENT_NAME}" "${DEPLOYMENT_CONTAINER}=${IMAGE}"
+          kubectl -n "${DEPLOY_NAMESPACE}" rollout status "deployment/${DEPLOYMENT_NAME}"
