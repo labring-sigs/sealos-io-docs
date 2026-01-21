@@ -129,7 +129,7 @@ export default async function LocaleLayout({
               SearchDialog: DefaultSearchDialog,
             }}
           >
-            {needsDarkMode && (
+            {/* {needsDarkMode && (
               <div className="sticky top-0 z-50 flex h-auto w-full flex-col items-center justify-center bg-gradient-to-r from-white to-[#609CFF] px-4 py-2 text-zinc-900 sm:flex-row lg:h-12">
                 <div className="flex flex-1 flex-col lg:w-fit lg:flex-none lg:flex-row">
                   <b className="text-center text-xs sm:text-start sm:text-sm lg:text-base">
@@ -144,7 +144,7 @@ export default async function LocaleLayout({
                   className="lg:ml-2"
                 />
               </div>
-            )}
+            )} */}
 
             {children}
             <AuthForm />

@@ -1,5 +1,9 @@
 {
     "title": "应用商店",
     "defaultOpen": true,
-    "pages": ["ai", "tools", "blog", "low-code"]
+    "pages": [
+        "tools",
+        "blog",
+        "low-code"
+    ]
 }

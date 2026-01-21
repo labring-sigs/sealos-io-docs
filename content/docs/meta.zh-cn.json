@@ -1,3 +1,20 @@
 {
-    "pages": ["[Cloudy][Sealos Cloud](https://cloud.sealos.run)", "[SquareCode][Sealos DevBox](https://sealos.run/devbox)", "[Handshake][联系我们](https://fael3z0zfze.feishu.cn/share/base/form/shrcn5oHHTKCf3VREMKOhEy6fmf)", "[Brain][FastGPT](https://fastgpt.cn)", "---入门---", "quick-start", "overview/intro", "---AI---", "...AI", "---指南---", "...guides", "---案例---", "...examples", "---进阶---", "system-design", "self-hosting", "k8s", "community", "---条款---", "...msa"]
+    "pages": [
+        "---入门---",
+        "quick-start",
+        "overview/intro",
+        "---AI---",
+        "...AI",
+        "---指南---",
+        "...guides",
+        "---案例---",
+        "...examples",
+        "---进阶---",
+        "system-design",
+        "self-hosting",
+        "k8s",
+        "community",
+        "---条款---",
+        "...msa"
+    ]
 }

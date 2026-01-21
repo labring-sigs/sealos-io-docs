@@ -17,10 +17,10 @@ export function isForcedDarkMode(pathname: string): boolean {
       path: '/blog',
       match: 'prefix',
     },
-    {
-      path: '/docs',
-      match: 'prefix',
-    },
+    // {
+    //   path: '/docs',
+    //   match: 'prefix',
+    // },
     {
       path: '/comparison',
       match: 'prefix',
